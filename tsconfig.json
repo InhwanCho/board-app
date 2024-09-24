@@ -1,5 +1,7 @@
 {
   "compilerOptions": {
+    "noUnusedLocals": false, // 사용되지 않는 로컬 변수 무시
+    "noUnusedParameters": false, // 사용되지 않는 함수 파라미터 무시
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
