@@ -5,30 +5,37 @@ import { useRenameModal } from "@/store/use-rename-modal";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { useMutation } from "convex/react";
-import { api } from "../../../convex/_generated/api";
 import { toast } from "sonner";
-import { Id } from "../../../convex/_generated/dataModel";
-
 
 export default function RenameModal() {
   const { isOpen, onClose, initialValues } = useRenameModal()
   const [title, setTitle] = useState(initialValues.title);
-  const update = useMutation(api.board.update);
+
   useEffect(() => {
     setTitle(initialValues.title)
   }, [initialValues.title])
 
-  const onSubmit: FormEventHandler<HTMLElement> = (e) => {
+  const onSubmit: FormEventHandler<HTMLElement> = async (e) => {
     e.preventDefault();
-    update({ id: initialValues.id as Id<"boards">, title })
-      .then(() => {
-        toast.success("Board renamed")
-        onClose()
-      })
-      .catch(() => toast.error("Failed to rename"))
-
+    try {
+      const response = await fetch(`/api/boards/${initialValues.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title }),
+      });
+      if (response.ok) {
+        toast.success("Board renamed");
+        onClose();
+      } else {
+        throw new Error();
+      }
+    } catch {
+      toast.error("Failed to rename");
+    }
   }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>

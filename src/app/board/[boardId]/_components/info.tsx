@@ -1,9 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useQuery } from "convex/react";
-import { api } from "../../../../../convex/_generated/api";
-import { Id } from "../../../../../convex/_generated/dataModel";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Poppins } from "next/font/google";
 import { cn } from "@/lib/utils";
@@ -12,6 +10,7 @@ import Hint from "@/components/hint";
 import { useRenameModal } from "@/store/use-rename-modal";
 import { Actions } from "@/components/actions";
 import { Menu } from "lucide-react";
+import { Board } from "@prisma/client";
 
 interface InfoProps {
   boardId: string
@@ -25,17 +24,24 @@ const font = Poppins({
 const TabSeparator = () => {
   return (
     <div className="text-neutral-300 px-1.5">
-
     </div>
   )
 }
 
 export default function Info({ boardId }: InfoProps) {
   const { onOpen } = useRenameModal();
+  const [data, setData] = useState<Board | null>(null);
 
-  const data = useQuery(api.board.get, { id: boardId as Id<"boards">, })
-  if (!data) return <InfoSkeleton />
+  useEffect(() => {
+    const fetchBoardData = async () => {
+      const response = await fetch(`/api/boards/${boardId}`);
+      const boardData = await response.json();
+      setData(boardData);
+    };
+    fetchBoardData();
+  }, [boardId]);
 
+  if (!data) return <InfoSkeleton />;
 
   return (
     <div className="absolute top-2 left-2 bg-white rounded-md px-1.5 h-12 flex items-center shadow-md">
@@ -49,12 +55,12 @@ export default function Info({ boardId }: InfoProps) {
       </Hint>
       <TabSeparator />
       <Hint label="Edit title" side="bottom" sideOffset={10}>
-        <Button variant={'board'} className="text-base font-normal px-2" onClick={() => onOpen(data._id, data.title)}>
+        <Button variant={'board'} className="text-base font-normal px-2" onClick={() => onOpen(data.id, data.title)}>
           {data.title}
         </Button>
       </Hint>
       <TabSeparator />
-      <Actions id={data._id} title={data.title} side="bottom" sideOffset={10}>
+      <Actions id={data.id} title={data.title} side="bottom" sideOffset={10}>
         <div >
           <Hint label="Main menu" side="bottom" sideOffset={10}>
             <Button size={"icon"} variant={"board"}>
@@ -62,7 +68,6 @@ export default function Info({ boardId }: InfoProps) {
             </Button>
           </Hint>
         </div>
-
       </Actions>
     </div>
   )

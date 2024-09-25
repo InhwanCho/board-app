@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import ConvexClientProvider from "@/components/provider/convex-client-provider";
+import { ClerkProvider } from "@clerk/nextjs";
 import { Toaster } from "@/components/ui/sonner";
 import ModalProvider from "@/components/provider/modal-provider";
 import { Suspense } from "react";
@@ -28,17 +28,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Suspense fallback={<Loading />}>
-          <ConvexClientProvider>
+          <ClerkProvider publishableKey={publishableKey}>
             <Toaster />
             <ModalProvider />
             {children}
-          </ConvexClientProvider>
+          </ClerkProvider>
         </Suspense>
       </body>
     </html>

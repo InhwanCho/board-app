@@ -17,7 +17,8 @@ import { SelectionTools } from "./selection-tools";
 import { Path } from "./path";
 import { useDisableScrollBounce } from "@/lib/hooks/use-disable-scroll-bounce";
 import { useDeleteLayers } from "@/lib/hooks/use-delete-layers";
-
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface CanvasProps {
   boardId: string;
@@ -26,6 +27,27 @@ interface CanvasProps {
 const MAX_LAYERS = 100;
 
 export default function Canvas({ boardId }: CanvasProps) {
+  const [boardData, setBoardData] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchBoardData = async () => {
+      try {
+        const response = await fetch(`/api/boards/${boardId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch board data");
+        }
+        const data = await response.json();
+        setBoardData(data);
+      } catch (error) {
+        console.error("Error fetching board data:", error);
+        toast.error("Failed to load board");
+        router.push("/");
+      }
+    };
+
+    fetchBoardData();
+  }, [boardId, router]);
   const layerIds = useStorage((root) => root.layerIds);
   const pencilDraft = useSelf((me) => me.presence.pencilDraft);
   const [camera, setCamera] = useState<Camera>({ x: 0, y: 0 })
@@ -45,9 +67,9 @@ export default function Canvas({ boardId }: CanvasProps) {
     function onKeyDown(e: KeyboardEvent) {
       const target = e.target as HTMLElement;
       const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
-  
+
       if (isTyping) return;
-  
+
       switch (e.key) {
         case "z": {
           if (e.ctrlKey || e.metaKey) {
@@ -65,7 +87,7 @@ export default function Canvas({ boardId }: CanvasProps) {
         }
       }
     }
-  
+
     document.addEventListener("keydown", onKeyDown);
     return () => {
       document.removeEventListener("keydown", onKeyDown);

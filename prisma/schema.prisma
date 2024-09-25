@@ -13,24 +13,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
-}
-
 model Board {
-  id         Int     @id @default(autoincrement())
+  id         String   @id @default(cuid())
   title      String
   orgId      String
   authorId   String
   authorName String
   imageUrl   String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  UserFavorite UserFavorite[]
 }
 
 model UserFavorite {
-  id      Int    @id @default(autoincrement())
+  id      String @id @default(cuid())
   orgId   String
   userId  String
-  boardId Int
+  boardId String
+  Board   Board  @relation(fields: [boardId], references: [id])
+
+  @@unique([userId, boardId])
 }

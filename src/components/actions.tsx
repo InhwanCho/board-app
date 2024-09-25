@@ -4,12 +4,10 @@ import { DropdownMenuContentProps } from "@radix-ui/react-dropdown-menu";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./ui/dropdown-menu";
 import { Link2, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { useMutation } from "convex/react";
-import { api } from "../../convex/_generated/api";
+import { useRouter } from "next/navigation";
 import ConfirmModal from "./confirm-modal";
 import { Button } from "./ui/button";
 import { useRenameModal } from "@/store/use-rename-modal";
-import { Id } from "../../convex/_generated/dataModel";
 
 interface ActionsProps {
   children: React.ReactNode;
@@ -23,19 +21,28 @@ export function Actions({
   children, side, sideOffset, id, title
 }: ActionsProps) {
   const { onOpen } = useRenameModal();
-  const remove = useMutation(api.board.remove)
+  const router = useRouter();
 
   const onCopyLink = () => {
     navigator.clipboard.writeText(`${window.location.origin}/board/${id}`)
       .then(() => toast.success("Link copied"))
       .catch(() => toast.error("Failed to copy link"))
   }
-  const onDelete = () => {    
-    remove({
-      id : id as Id<"boards">, 
-    })
-      .then(() => toast.success("Board deleted"))
-      .catch(() => toast.error("Failed to delete"));
+
+  const onDelete = async () => {
+    try {
+      const response = await fetch(`/api/boards/${id}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        toast.success("Board deleted");
+        router.push('/');
+      } else {
+        throw new Error();
+      }
+    } catch {
+      toast.error("Failed to delete");
+    }
   };
 
   return (
